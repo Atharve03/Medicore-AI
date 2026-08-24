@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: medicore-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    container_name: medicore-redis
+    ports:
+      - "6379:6379"
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: medicore-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: medicore-backend
+    env_file:
+      - ../backend/.env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+      - redis
+      - ollama
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../docker/Dockerfile.frontend
+    container_name: medicore-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
+  ollama-data:
