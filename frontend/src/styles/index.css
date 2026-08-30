@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-surface-light text-ink-light dark:bg-surface-dark dark:text-ink-dark;
+    font-feature-settings: 'tnum' 1, 'cv11' 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* Visible keyboard focus everywhere, never suppressed for mouse users
+     via outline:none without a replacement — required by the design
+     skill's "quality floor". */
+  :focus-visible {
+    outline: 2px solid theme('colors.clinical.500');
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: theme('colors.pulse.200');
+  }
+}
+
+@layer utilities {
+  .font-data {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Signature element: an animated vitals-monitor pulse line, used on the
+   auth screen. Respects prefers-reduced-motion per the design skill's
+   quality floor. */
+@keyframes pulse-sweep {
+  0% {
+    stroke-dashoffset: 1000;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pulse-line path {
+  stroke-dasharray: 1000;
+  animation: pulse-sweep 3.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-line path {
+    animation: none;
+  }
+}
