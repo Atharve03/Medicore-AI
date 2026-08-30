@@ -121,6 +121,25 @@ React → POST /api/ai/assistant
 No other collection (billing, inventory, other patients' records, etc.) is ever
 placed in context.
 
+### 3.4 General-Knowledge RAG
+
+Trusted general healthcare documents follow a separate path:
+
+```
+Admin ingestion → text extraction → overlapping chunks → local embeddings
+                → RAG repository / MongoDB knowledge collections
+
+AI question → retrieval planner ─┬→ RAG similarity search (general knowledge)
+                                 └→ MCP tools (authorized application data)
+                    → minimized, labeled context → Qwen/Ollama
+```
+
+The planner can select RAG, MCP, both, or neither. Knowledge chunks always have
+the fixed `general` scope. Patient-specific data is never ingested into RAG and
+continues to flow exclusively through MCP authorization. Retrieved text is
+treated as untrusted data to prevent document prompt injection from overriding
+system or authorization rules.
+
 ## 4. Hybrid AI Rationale
 
 | | Local (Ollama + Qwen 2.5 3B) | Commercial (OpenAI / Claude / Gemini) |

@@ -10,7 +10,8 @@
     "start": "node src/server.js",
     "seed:admin": "node scripts/seedAdmin.js",
     "lint": "eslint src --ext .js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "test:e2e": "node scripts/e2eApiSmoke.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

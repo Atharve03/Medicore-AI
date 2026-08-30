@@ -56,9 +56,10 @@ ollama serve
 ```
 
 Configure `AI_PROVIDER=local`, `OLLAMA_BASE_URL=http://localhost:11434`, and
-`OLLAMA_MODEL=qwen2.5:3b-instruct`. No commercial-provider key is required in
+`OLLAMA_MODEL=qwen2.5:3b-instruct`. `OLLAMA_TIMEOUT_MS` controls the request
+timeout and defaults to 60000. No commercial-provider key is required in
 local mode, and the server returns a controlled 503 instead of silently falling
-back if Ollama is unavailable.
+back if Ollama or the configured model is unavailable.
 
 Authenticated patients, doctors, and admins use the assistant at
 `/ai-assistant` through `POST /api/v1/ai/chat`. Application facts are retrieved
@@ -66,7 +67,38 @@ only through authorized MCP tools; the orchestrator has no model/repository
 imports and removes internal identifiers before sending narrow context to Qwen.
 Conversation context is bounded, held per user in memory, and can be cleared.
 
+## General-knowledge RAG
+
+Phase 22 includes a separate RAG subsystem for trusted, non-patient healthcare
+knowledge. Admins ingest plain text, Markdown, or JSON text through
+`POST /api/v1/rag/documents`; `GET /api/v1/rag/documents` lists the knowledge
+base and `DELETE /api/v1/rag/documents/:id` removes a document and its chunks.
+Documents are chunked with overlap, embedded locally, and stored behind a
+repository abstraction in MongoDB. The default `local-hash` embedder requires
+no paid service or model download. It is intended for a modest local knowledge
+base and can later be replaced behind the embedding/repository interfaces.
+
+The orchestrator chooses among RAG, MCP, both, or neither. RAG contains only
+general knowledge; patient records always come from authorized MCP tools.
+Retrieved chunks are treated as untrusted reference data and never as system
+instructions. Relevant source metadata is returned to the chat UI.
+
+Example ingestion request (authenticated admin):
+
+```json
+{
+  "title": "Hospital Diabetes Education Guide",
+  "source": "MediCore Clinical Education Team",
+  "mimeType": "text/markdown",
+  "content": "# Diabetes\nTrusted educational content...",
+  "metadata": { "reviewedAt": "2026-08-30" }
+}
+```
+
 Relevant environment variables are documented in `backend/.env.example`.
+RAG tuning variables include `RAG_EMBEDDING_PROVIDER`,
+`RAG_EMBEDDING_DIMENSIONS`, `RAG_CHUNK_SIZE`, `RAG_CHUNK_OVERLAP`,
+`RAG_TOP_K`, `RAG_MIN_SCORE`, and `RAG_MAX_CANDIDATES`.
 
 ## Local development
 

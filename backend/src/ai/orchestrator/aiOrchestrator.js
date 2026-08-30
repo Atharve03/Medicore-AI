@@ -4,6 +4,8 @@ const { getProvider } = require('../gateway/providerManager');
 const systemPrompt = require('../prompts/systemPrompt');
 const conversationStore = require('./conversationStore');
 const { detectIntent } = require('./intentRouter');
+const { planRetrieval } = require('./retrievalPlanner');
+const ragService = require('../../rag/rag.service');
 
 async function ownPatientId(requestingUser) {
   if (requestingUser.role !== 'patient') {
@@ -30,24 +32,45 @@ async function retrieve(intent, requestingUser) {
 }
 
 function minimize(value) {
-  if (Array.isArray(value)) return value.map(minimize);
-  if (!value || typeof value !== 'object') return value;
-  return Object.fromEntries(
-    Object.entries(value)
-      .filter(([key]) => !/(^id$|Id$|password|otp|token|secret)/i.test(key))
-      .map(([key, nested]) => [key, minimize(nested)])
-  );
+  if (value === undefined) return undefined;
+  // MCP tools can return Mongoose arrays/subdocuments. Their prototype
+  // accessors are not safe to recursively enumerate and may contain cycles.
+  // JSON serialization invokes Mongoose's supported toJSON conversion first.
+  const plain = JSON.parse(JSON.stringify(value));
+  const visit = (current) => {
+    if (Array.isArray(current)) return current.map(visit);
+    if (!current || typeof current !== 'object') return current;
+    return Object.fromEntries(
+      Object.entries(current)
+        .filter(([key]) => !/(^id$|Id$|password|otp|token|secret)/i.test(key))
+        .map(([key, nested]) => [key, visit(nested)])
+    );
+  };
+  return visit(plain);
 }
 
 async function chat({ message, requestingUser }) {
   const intent = detectIntent(message);
-  const data = minimize(await retrieve(intent, requestingUser));
+  if (intent.name === 'forbidden.cross_patient') {
+    await retrieve(intent, requestingUser);
+  }
+  const plan = planRetrieval(message, intent);
+  const [applicationData, knowledgeResults] = await Promise.all([
+    plan.needsMcp ? retrieve(intent, requestingUser) : undefined,
+    plan.needsRag ? ragService.retrieve(message) : [],
+  ]);
+  const data = minimize(applicationData);
+  const knowledgeContext = ragService.buildContext(knowledgeResults);
   const previous = conversationStore.get(requestingUser.id);
   const messages = [...previous, { role: 'user', content: message }];
   const result = await getProvider().generate({
     systemPrompt,
     messages,
-    context: data === undefined ? undefined : { intent: intent.name, data },
+    context: {
+      retrievalMode: plan.mode,
+      ...(data === undefined ? {} : { authorizedApplicationData: { intent: intent.name, data } }),
+      ...(knowledgeContext ? { untrustedKnowledgeExcerpts: knowledgeContext } : {}),
+    },
   });
   conversationStore.append(
     requestingUser.id,
@@ -59,8 +82,16 @@ async function chat({ message, requestingUser }) {
     provider: result.provider,
     model: result.model,
     intent: intent.name,
-    toolUsed: intent.name === 'general' ? null : intent.name,
+    retrievalMode: plan.mode,
+    toolUsed: plan.needsMcp ? intent.name : null,
+    sources: knowledgeResults.map(({ documentId, title, source, chunkIndex, score }) => ({
+      documentId,
+      title,
+      source,
+      chunkIndex,
+      score,
+    })),
   };
 }
 
-module.exports = { chat, clearConversation: conversationStore.clear };
+module.exports = { chat, clearConversation: conversationStore.clear, minimize };

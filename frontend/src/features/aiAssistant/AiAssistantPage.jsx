@@ -28,8 +28,20 @@ export default function AiAssistantPage() {
     setLoading(true);
     try {
       const { data } = await aiApi.chat(message);
-      setMessages((items) => [...items, { role: 'assistant', content: data.data.reply }]);
-      setActivity(data.data.toolUsed ? `Used authorized ${data.data.intent} data` : 'Answered without hospital data');
+      setMessages((items) => [...items, {
+        role: 'assistant',
+        content: data.data.reply,
+        sources: data.data.sources || [],
+      }]);
+      setActivity(
+        data.data.retrievalMode === 'both'
+          ? 'Used authorized hospital data and trusted knowledge'
+          : data.data.retrievalMode === 'mcp'
+            ? `Used authorized ${data.data.intent} data`
+            : data.data.retrievalMode === 'rag'
+              ? 'Used trusted healthcare knowledge'
+              : 'Answered conversationally without retrieval'
+      );
     } catch (err) {
       setError(err?.response?.data?.message || 'The assistant is unavailable right now.');
       setActivity('');
@@ -64,6 +76,18 @@ export default function AiAssistantPage() {
               {message.role === 'assistant' && <Bot className="mt-1 h-5 w-5 shrink-0 text-clinical-600" />}
               <div className={`max-w-[80%] whitespace-pre-wrap rounded-xl px-4 py-3 text-sm ${message.role === 'user' ? 'bg-clinical-600 text-white' : 'bg-clinical-50 text-ink-light dark:bg-clinical-800 dark:text-ink-dark'}`}>
                 {message.content}
+                {message.sources?.length > 0 && (
+                  <div className="mt-3 border-t border-clinical-200 pt-2 dark:border-clinical-700">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-clinical-700 dark:text-clinical-200">Sources</p>
+                    <ul className="mt-1 space-y-1 text-xs text-ink-light/65 dark:text-ink-dark/65">
+                      {message.sources.map((source, sourceIndex) => (
+                        <li key={`${source.documentId}-${source.chunkIndex}-${sourceIndex}`}>
+                          {source.title} — {source.source}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
               {message.role === 'user' && <User className="mt-1 h-5 w-5 shrink-0 text-clinical-600" />}
             </div>

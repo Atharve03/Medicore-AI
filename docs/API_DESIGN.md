@@ -133,3 +133,17 @@ Response (normalized regardless of provider):
 ```json
 { "reply": "...", "provider": "local", "intent": "lab.explainReport" }
 ```
+
+The response may also include `retrievalMode` (`rag`, `mcp`, `both`, or
+`none`) and a minimized `sources` array for general-knowledge citations.
+
+## RAG Knowledge Documents (Phase 22)
+
+| Method | Path | Roles |
+|---|---|---|
+| POST | `/rag/documents` | admin — ingest trusted general healthcare text |
+| GET | `/rag/documents` | admin — list ingested documents |
+| DELETE | `/rag/documents/:id` | admin — remove a document and its chunks |
+
+The public request cannot choose an access scope. Every ingested document is
+stored as `general`; private patient data is never part of this knowledge base.

@@ -47,6 +47,7 @@ const env = {
     ollama: {
       baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
       model: process.env.OLLAMA_MODEL || 'qwen2.5:3b-instruct',
+      timeoutMs: parseInt(process.env.OLLAMA_TIMEOUT_MS || '60000', 10),
     },
     openai: {
       apiKey: process.env.OPENAI_API_KEY || '',
@@ -63,6 +64,16 @@ const env = {
   },
 
   aiHistoryLimit: parseInt(process.env.AI_HISTORY_LIMIT || '10', 10),
+
+  rag: {
+    embeddingProvider: process.env.RAG_EMBEDDING_PROVIDER || 'local-hash',
+    embeddingDimensions: parseInt(process.env.RAG_EMBEDDING_DIMENSIONS || '256', 10),
+    chunkSize: parseInt(process.env.RAG_CHUNK_SIZE || '1000', 10),
+    chunkOverlap: parseInt(process.env.RAG_CHUNK_OVERLAP || '150', 10),
+    topK: parseInt(process.env.RAG_TOP_K || '4', 10),
+    minScore: parseFloat(process.env.RAG_MIN_SCORE || '0.12'),
+    maxCandidates: parseInt(process.env.RAG_MAX_CANDIDATES || '5000', 10),
+  },
 
   isProduction: (process.env.NODE_ENV || 'development') === 'production',
 };

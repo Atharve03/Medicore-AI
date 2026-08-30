@@ -64,6 +64,7 @@ app.use('/api/v1/admissions', require('./modules/admission/admission.routes'));
 app.use('/api/v1/notifications', require('./modules/notification/notification.routes'));
 app.use('/api/v1/mcp', require('./mcp/mcp.routes'));
 app.use('/api/v1/ai', require('./modules/ai/ai.routes'));
+app.use('/api/v1/rag', require('./modules/rag/rag.routes'));
 
 // All 15 backend business modules, plus the 12 MCP servers (Phase 21),
 // are now mounted. AI integration (Phase 22) and Analytics (Phase 23)
