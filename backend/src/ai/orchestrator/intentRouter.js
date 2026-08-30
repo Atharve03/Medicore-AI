@@ -1,5 +1,18 @@
 function detectIntent(message) {
   const text = message.toLowerCase();
+  if (/analytics|performance|trend|workload|how many appointments|hospital-wide|revenue this|revenue last|this month.*appointment/.test(text)) {
+    let section = 'overview';
+    if (/appointment|workload/.test(text)) section = 'appointments';
+    else if (/revenue|billing|invoice/.test(text)) section = 'billing';
+    else if (/pharmacy|medicine|inventory/.test(text)) section = 'pharmacy';
+    else if (/laboratory|lab/.test(text)) section = 'laboratory';
+    else if (/admission|ward/.test(text)) section = 'admissions';
+    else if (/department/.test(text)) section = 'departments';
+    else if (/patient/.test(text)) section = 'patients';
+    else if (/doctor/.test(text)) section = 'doctors';
+    const range = /today/.test(text) ? 'today' : /last 7 days|last7days|past week|this week/.test(text) ? 'last7Days' : /this month|thismonth/.test(text) ? 'thisMonth' : /last month|lastmonth/.test(text) ? 'lastMonth' : 'last30Days';
+    return { name: 'analytics.insight', section, range };
+  }
   if (/another patient|all patients|someone else|other patient/.test(text)) return { name: 'forbidden.cross_patient' };
   if (/appointment|scheduled|booking/.test(text)) return { name: 'appointment.upcoming' };
   if (/\blab\b|blood report|test result/.test(text)) return { name: 'laboratory.latest' };

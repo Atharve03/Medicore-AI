@@ -6,7 +6,7 @@ function extractText({ content, mimeType = 'text/plain' }) {
   if (!SUPPORTED_TYPES.has(mimeType)) {
     throw ApiError.badRequest(`Unsupported knowledge document type: ${mimeType}`);
   }
-  const text = String(content || '').replace(/\u0000/g, '').trim();
+  const text = String(content || '').split(String.fromCharCode(0)).join('').trim();
   if (!text) throw ApiError.badRequest('Knowledge document content cannot be empty');
   return text;
 }

@@ -190,3 +190,8 @@ caching expensive read paths (e.g. analytics aggregations).
 - Clean layered backend architecture that maps directly to how large software
   consultancies (Deloitte/Accenture/Cognizant-style delivery) structure
   production systems.
+# Phase 23 analytics
+
+Analytics requests flow through route authentication and validation, controller, service authorization/date scope, analytics repository aggregation, and MongoDB. AI analytics use the same service exclusively through the fixed MCP registry; the AI layer has no database access.
+
+Time-leading indexes support appointment, billing, laboratory, admission, patient-registration, and pharmacy analytics. Redis caching is intentionally not enabled yet: the current bounded aggregations avoid cross-role cache risk, and caching should be added only after production query measurements identify expensive workloads.

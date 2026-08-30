@@ -9,6 +9,7 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "seed:admin": "node scripts/seedAdmin.js",
+    "seed:super-admin": "node scripts/seedSuperAdmin.js",
     "lint": "eslint src --ext .js",
     "test": "jest --runInBand",
     "test:e2e": "node scripts/e2eApiSmoke.js"

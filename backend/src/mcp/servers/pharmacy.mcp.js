@@ -7,7 +7,7 @@ module.exports = {
     getUsageStats: {
       description: 'Top dispensed medicines by quantity and revenue, hospital-wide.',
       async handler({ limit = 5 }, { requestingUser }) {
-        if (requestingUser.role !== 'admin') {
+        if (!['admin', 'superAdmin'].includes(requestingUser.role)) {
           throw new Error(`Role ${requestingUser.role} cannot access pharmacy usage stats`);
         }
         return pharmacyOrderRepository.getTopDispensedMedicines(limit);

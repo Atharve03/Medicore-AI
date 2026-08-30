@@ -8,7 +8,6 @@ import Select from '../../components/common/Select.jsx';
 import Button from '../../components/common/Button.jsx';
 
 const ROLES = [
-  'admin',
   'doctor',
   'patient',
   'receptionist',
@@ -17,7 +16,8 @@ const ROLES = [
   'labTechnician',
 ];
 
-export default function CreateUserModal({ open, onClose, onCreated }) {
+export default function CreateUserModal({ open, onClose, onCreated, actorRole }) {
+  const availableRoles = actorRole === 'superAdmin' ? ['superAdmin', 'admin', ...ROLES] : ROLES;
   const [serverError, setServerError] = useState(null);
   const {
     register,
@@ -64,7 +64,7 @@ export default function CreateUserModal({ open, onClose, onCreated }) {
           })}
         />
         <Select id="role" label="Role" {...register('role', { required: true })}>
-          {ROLES.map((r) => (
+          {availableRoles.map((r) => (
             <option key={r} value={r}>
               {r}
             </option>

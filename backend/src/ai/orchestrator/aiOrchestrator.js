@@ -27,6 +27,7 @@ async function retrieve(intent, requestingUser) {
     case 'patient.profile': return mcpClient.call('patient', 'getOwnProfile', {}, context);
     case 'doctor.available': return mcpClient.call('doctor', 'listAvailable', { limit: 10 }, context);
     case 'notification.unread': return mcpClient.call('notification', 'listUnreadForCaller', { limit: 10 }, context);
+    case 'analytics.insight': return mcpClient.call('analytics', 'getAuthorizedAnalytics', { section: intent.section, range: intent.range }, context);
     default: return undefined;
   }
 }
@@ -81,6 +82,7 @@ async function chat({ message, requestingUser }) {
     reply: result.text,
     provider: result.provider,
     model: result.model,
+    usage: result.usage || { promptTokens: null, completionTokens: null },
     intent: intent.name,
     retrievalMode: plan.mode,
     toolUsed: plan.needsMcp ? intent.name : null,

@@ -26,7 +26,7 @@ module.exports = {
     getRevenueStats: {
       description: 'Hospital-wide billed/collected/outstanding totals.',
       async handler(_args, { requestingUser }) {
-        if (requestingUser.role !== 'admin') {
+        if (!['admin', 'superAdmin'].includes(requestingUser.role)) {
           throw new Error(`Role ${requestingUser.role} cannot access revenue stats`);
         }
         return invoiceRepository.getRevenueStats();

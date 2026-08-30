@@ -49,6 +49,7 @@ const admissionSchema = new mongoose.Schema(
 );
 
 admissionSchema.index({ patientId: 1, admittedAt: -1 });
+admissionSchema.index({ admittedAt: -1, status: 1 });
 // Used to check bed availability: is any *currently admitted* patient
 // already occupying this ward/bed combination.
 admissionSchema.index({ wardType: 1, bedNumber: 1, status: 1 });

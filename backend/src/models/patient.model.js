@@ -64,6 +64,7 @@ const patientSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+patientSchema.index({ createdAt: -1 });
 
 patientSchema.methods.toClientJSON = function toClientJSON() {
   return {

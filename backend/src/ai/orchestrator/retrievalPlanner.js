@@ -7,6 +7,7 @@ const MCP_INTENTS = new Set([
   'patient.profile',
   'doctor.available',
   'notification.unread',
+  'analytics.insight',
 ]);
 
 function planRetrieval(message, intent) {

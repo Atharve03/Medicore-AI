@@ -63,6 +63,7 @@ const invoiceSchema = new mongoose.Schema(
 );
 
 invoiceSchema.index({ patientId: 1, createdAt: -1 });
+invoiceSchema.index({ createdAt: -1, status: 1 });
 
 invoiceSchema.methods.toClientJSON = function toClientJSON() {
   return {

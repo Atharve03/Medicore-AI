@@ -9,7 +9,9 @@ function authorize(...allowedRoles) {
     if (!req.user) {
       return next(ApiError.unauthorized('Authentication required'));
     }
-    if (!allowedRoles.includes(req.user.role)) {
+    const allowed = allowedRoles.includes(req.user.role) ||
+      (req.user.role === 'superAdmin' && allowedRoles.includes('admin'));
+    if (!allowed) {
       return next(
         ApiError.forbidden(
           `Role '${req.user.role}' is not permitted to access this resource`

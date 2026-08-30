@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const ROLES = [
+  'superAdmin',
   'admin',
   'doctor',
   'patient',

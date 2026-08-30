@@ -14,7 +14,7 @@ const adminController = require('./admin.controller');
 const router = express.Router();
 
 // Every route in this module requires an authenticated admin.
-router.use(authenticate, authorize('admin'));
+router.use(authenticate, authorize('admin', 'superAdmin'));
 
 router.get('/overview', adminController.overview);
 

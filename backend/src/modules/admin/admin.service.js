@@ -21,7 +21,10 @@ const doctorRepository = require('../../repositories/doctor.repository');
  * The account's very first login still requires a login OTP like anyone
  * else's, since that check isn't about proving email ownership.
  */
-async function createUser({ fullName, email, password, role }) {
+async function createUser({ fullName, email, password, role }, actor) {
+  if (actor.role === 'admin' && ['admin', 'superAdmin'].includes(role)) {
+    throw ApiError.forbidden('Only a super admin can create privileged administrator accounts');
+  }
   const existing = await userRepository.findByEmail(email);
   if (existing) {
     throw ApiError.conflict('An account with this email already exists');
@@ -44,11 +47,15 @@ async function createUser({ fullName, email, password, role }) {
   return user.toSafeJSON();
 }
 
-async function listUsers(query) {
+async function listUsers(query, actor) {
+  if (actor.role === 'admin' && query.role === 'superAdmin') {
+    throw ApiError.forbidden('Administrators cannot list super-admin accounts');
+  }
   const { page, limit } = parsePagination(query);
   const { items, total } = await userRepository.list({
     role: query.role,
     search: query.search,
+    excludedRoles: actor.role === 'admin' ? ['superAdmin'] : [],
     page,
     limit,
   });
@@ -61,12 +68,24 @@ async function listUsers(query) {
   });
 }
 
-async function updateUser(id, updates, actingAdminId) {
-  if (id === actingAdminId && updates.isActive === false) {
+async function updateUser(id, updates, actor) {
+  const actingAdminId = String(actor.id);
+  const target = await userRepository.findById(id);
+  if (!target) throw ApiError.notFound('User not found');
+  if (actor.role === 'admin' && ['admin', 'superAdmin'].includes(target.role)) {
+    throw ApiError.forbidden('Only a super admin can manage privileged administrator accounts');
+  }
+  if (actor.role === 'admin' && ['admin', 'superAdmin'].includes(updates.role)) {
+    throw ApiError.forbidden('Only a super admin can grant administrator roles');
+  }
+  if (String(id) === actingAdminId && updates.isActive === false) {
     throw ApiError.badRequest('An admin cannot deactivate their own account');
   }
-  if (id === actingAdminId && updates.role && updates.role !== 'admin') {
+  if (String(id) === actingAdminId && updates.role && updates.role !== actor.role) {
     throw ApiError.badRequest('An admin cannot change their own role');
+  }
+  if (target.role === 'superAdmin' && updates.role && updates.role !== 'superAdmin' && await userRepository.countActiveByRole('superAdmin') <= 1) {
+    throw ApiError.badRequest('The last active super admin cannot be demoted');
   }
 
   const user = await userRepository.updateById(id, updates);
@@ -86,9 +105,18 @@ async function updateUser(id, updates, actingAdminId) {
  * than removing the document, since other collections (patients, doctors,
  * appointments, ...) reference this user by id in later phases.
  */
-async function deactivateUser(id, actingAdminId) {
-  if (id === actingAdminId) {
+async function deactivateUser(id, actor) {
+  const actingAdminId = String(actor.id);
+  const target = await userRepository.findById(id);
+  if (!target) throw ApiError.notFound('User not found');
+  if (actor.role === 'admin' && ['admin', 'superAdmin'].includes(target.role)) {
+    throw ApiError.forbidden('Only a super admin can manage privileged administrator accounts');
+  }
+  if (String(id) === actingAdminId) {
     throw ApiError.badRequest('An admin cannot deactivate their own account');
+  }
+  if (target.role === 'superAdmin' && await userRepository.countActiveByRole('superAdmin') <= 1) {
+    throw ApiError.badRequest('The last active super admin cannot be deactivated');
   }
 
   const user = await userRepository.setActive(id, false);

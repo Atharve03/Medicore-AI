@@ -40,6 +40,7 @@ const appointmentSchema = new mongoose.Schema(
 
 appointmentSchema.index({ doctorId: 1, scheduledAt: 1 });
 appointmentSchema.index({ patientId: 1, scheduledAt: -1 });
+appointmentSchema.index({ scheduledAt: -1, status: 1 });
 
 appointmentSchema.methods.toClientJSON = function toClientJSON() {
   return {

@@ -58,6 +58,7 @@ const pharmacyOrderSchema = new mongoose.Schema(
 );
 
 pharmacyOrderSchema.index({ patientId: 1, dispensedAt: -1 });
+pharmacyOrderSchema.index({ dispensedAt: -1 });
 
 pharmacyOrderSchema.methods.toClientJSON = function toClientJSON() {
   return {

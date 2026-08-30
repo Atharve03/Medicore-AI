@@ -57,6 +57,7 @@ const labReportSchema = new mongoose.Schema(
 );
 
 labReportSchema.index({ patientId: 1, resultAt: -1 });
+labReportSchema.index({ orderedAt: -1, status: 1 });
 
 labReportSchema.methods.toClientJSON = function toClientJSON() {
   return {

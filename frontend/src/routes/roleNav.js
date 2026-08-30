@@ -10,6 +10,7 @@ import {
   BedDouble,
   Bell,
   Sparkles,
+  ChartNoAxesCombined,
 } from 'lucide-react';
 
 /**
@@ -17,6 +18,15 @@ import {
  * this phase only needs the paths to exist and resolve to a placeholder.
  */
 export const ROLE_NAV = {
+  superAdmin: [
+    { label: 'Overview', to: '/admin', icon: LayoutDashboard },
+    { label: 'Users & Access', to: '/admin/users', icon: Users },
+    { label: 'Appointments', to: '/admin/appointments', icon: CalendarClock },
+    { label: 'Billing', to: '/admin/billing', icon: Receipt },
+    { label: 'Inventory', to: '/admin/inventory', icon: Boxes },
+    { label: 'AI Assistant', to: '/ai-assistant', icon: Sparkles },
+    { label: 'Notifications', to: '/notifications', icon: Bell },
+  ],
   admin: [
     { label: 'Overview', to: '/admin', icon: LayoutDashboard },
     { label: 'Users', to: '/admin/users', icon: Users },
@@ -69,8 +79,13 @@ export const ROLE_NAV = {
   ],
 };
 
+for (const role of ['superAdmin','admin','doctor','receptionist','nurse','pharmacist','labTechnician']) {
+  ROLE_NAV[role].splice(1, 0, { label: 'Analytics', to: '/analytics', icon: ChartNoAxesCombined });
+}
+
 /** The default landing route once a user of this role logs in. */
 export const ROLE_HOME = {
+  superAdmin: '/admin',
   admin: '/admin',
   doctor: '/doctor',
   patient: '/patient',

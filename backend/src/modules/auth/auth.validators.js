@@ -2,7 +2,7 @@ const Joi = require('joi');
 const { ROLES } = require('../../models/user.model');
 const { passwordSchema } = require('../../utils/passwordPolicy');
 
-const PUBLIC_ROLES = ROLES.filter((role) => role !== 'admin');
+const PUBLIC_ROLES = ROLES.filter((role) => !['admin', 'superAdmin'].includes(role));
 
 const registerSchema = Joi.object({
   fullName: Joi.string().trim().min(2).max(120).required(),

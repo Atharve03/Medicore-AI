@@ -121,3 +121,12 @@ docker compose -f docker/docker-compose.yml up --build
 
 Run verification with `cd backend && npm test` and
 `cd frontend && npm run build`.
+# Phase 23 — Analytics and AI Insights
+
+Role-scoped analytics are available under `/api/v1/analytics` for overview, appointments, patients, doctors, billing, pharmacy, laboratory, admissions, and departments. Queries accept `range=today|yesterday|last7Days|last30Days|thisMonth|lastMonth` or a bounded custom `from`/`to` ISO date pair (maximum 366 days). The React dashboard is at `/analytics` and uses the existing Axios authentication and Chart.js stack.
+
+Analytics use MongoDB aggregation through the analytics repository; controllers never query MongoDB. AI analytics requests continue through the existing orchestrator and the registered `analytics.getAuthorizedAnalytics` MCP tool, which applies the same role scope as REST. Qwen receives only authorized aggregate results and is instructed not to invent values or comparisons. Patients cannot access hospital analytics.
+
+Admin analytics also track AI requests, prompt/completion tokens, latency, failures, provider/model, and attributable API cost from the time telemetry is enabled. Local Ollama requests have zero provider/API cost; hardware and electricity costs are not estimated. `POST /api/v1/analytics/ai-report` generates a Qwen report using authorized analytics through MCP.
+
+AI governance, token/cost telemetry, and AI report generation are restricted to `superAdmin`. A regular `admin` retains operational administration but cannot create, edit, deactivate, list, or promote super-admin accounts and cannot grant administrator roles. Bootstrap the first super admin locally with `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_NAME`, and a strong `SUPER_ADMIN_PASSWORD`, then run `npm run seed:super-admin` from `backend`. Remove the password variable from the shell afterward.

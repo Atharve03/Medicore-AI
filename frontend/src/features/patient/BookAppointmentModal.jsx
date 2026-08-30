@@ -23,7 +23,7 @@ export default function BookAppointmentModal({ open, onClose, onBooked }) {
   const [serverError, setServerError] = useState(null);
 
   const fetchDoctors = useCallback(() => doctorsApi.list({ limit: 100 }), []);
-  const { data: doctorList } = useFetch(fetchDoctors, []);
+  const { data: doctorList, refetch: refetchDoctors } = useFetch(fetchDoctors, []);
   const doctors = doctorList?.items || [];
 
   const {
@@ -36,10 +36,11 @@ export default function BookAppointmentModal({ open, onClose, onBooked }) {
 
   useEffect(() => {
     if (open) {
+      refetchDoctors();
       reset({ doctorId: '', scheduledAt: '', reasonForVisit: '' });
       setServerError(null);
     }
-  }, [open, reset]);
+  }, [open, reset, refetchDoctors]);
 
   const selectedDoctorId = watch('doctorId');
   const selectedDoctor = doctors.find((d) => d.id === selectedDoctorId);
@@ -91,7 +92,12 @@ export default function BookAppointmentModal({ open, onClose, onBooked }) {
           label="Date & time"
           type="datetime-local"
           error={errors.scheduledAt?.message}
-          {...register('scheduledAt', { required: 'Pick a date and time' })}
+          {...register('scheduledAt', {
+            required: 'Pick a date and time',
+            validate: (value) =>
+              matchesAvailability(value, selectedDoctor) ||
+              availabilityMessage(selectedDoctor),
+          })}
         />
 
         <TextField
@@ -112,4 +118,22 @@ export default function BookAppointmentModal({ open, onClose, onBooked }) {
       </form>
     </Modal>
   );
+}
+
+function matchesAvailability(value, doctor) {
+  if (!value || !doctor?.availability?.length) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const day = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()];
+  const time = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  return doctor.availability.some(
+    (slot) => slot.day === day && time >= slot.startTime && time < slot.endTime
+  );
+}
+
+function availabilityMessage(doctor) {
+  if (!doctor?.availability?.length) return 'This doctor has not published availability.';
+  return `Choose one of: ${doctor.availability
+    .map((slot) => `${DAY_LABELS[slot.day]} ${slot.startTime}–${slot.endTime}`)
+    .join(', ')}`;
 }

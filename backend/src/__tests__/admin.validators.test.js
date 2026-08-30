@@ -16,14 +16,14 @@ describe('admin.validators', () => {
       expect(error).toBeUndefined();
     });
 
-    it('rejects an invalid role', () => {
+    it('accepts superAdmin for service-level privileged authorization', () => {
       const { error } = createUserSchema.validate({
         fullName: 'Someone',
         email: 'someone@medicore-hospital.com',
         password: 'Supersecret@1',
         role: 'superAdmin',
       });
-      expect(error).toBeDefined();
+      expect(error).toBeUndefined();
     });
   });
 

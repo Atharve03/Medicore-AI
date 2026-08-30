@@ -147,3 +147,8 @@ The response may also include `retrievalMode` (`rag`, `mcp`, `both`, or
 
 The public request cannot choose an access scope. Every ingested document is
 stored as `general`; private patient data is never part of this knowledge base.
+# Phase 23 analytics
+
+`GET /api/v1/analytics/{overview|appointments|patients|doctors|billing|pharmacy|laboratory|admissions|departments}` requires authentication, validates date filters, and enforces section-specific roles. Custom ranges use `from=YYYY-MM-DD&to=YYYY-MM-DD`; named ranges use `range`.
+
+Admin-only AI telemetry is available from `GET /api/v1/analytics/ai-usage`; grounded report generation uses `POST /api/v1/analytics/ai-report` with a named `range`.

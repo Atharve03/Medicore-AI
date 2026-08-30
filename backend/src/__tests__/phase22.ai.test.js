@@ -1,6 +1,7 @@
 jest.mock('../mcp/client/mcpClient');
 jest.mock('../ai/gateway/providerManager');
 jest.mock('../rag/rag.service');
+jest.mock('../services/aiUsage.service');
 
 const mcpClient = require('../mcp/client/mcpClient');
 const { getProvider } = require('../ai/gateway/providerManager');
@@ -12,6 +13,7 @@ const { User } = require('../models/user.model');
 const { signAccessToken } = require('../utils/jwt');
 const ragService = require('../rag/rag.service');
 const { LabReport } = require('../models/labReport.model');
+const systemPrompt = require('../ai/prompts/systemPrompt');
 
 describe('Phase 22 AI integration', () => {
   const requestingUser = { id: 'user-1', role: 'patient' };
@@ -40,6 +42,11 @@ describe('Phase 22 AI integration', () => {
     const providerInput = getProvider.mock.results[0].value.generate.mock.calls[0][0];
     expect(JSON.stringify(providerInput.context)).not.toContain('secret-id');
     expect(result.provider).toBe('local');
+  });
+
+  it('forbids causal conclusions from zero analytics counts', () => {
+    expect(systemPrompt).toContain('A zero count means only');
+    expect(systemPrompt).toContain('does not prove low engagement');
   });
 
   it('does not call MCP for general information', async () => {

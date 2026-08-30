@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { attachAuthStore } from '../api/client.js';
@@ -15,6 +15,7 @@ import ForgotPasswordPage from '../features/auth/ForgotPasswordPage.jsx';
 import NotificationsPage from '../features/shared/NotificationsPage.jsx';
 import NotFoundPage from '../features/shared/NotFoundPage.jsx';
 import AiAssistantPage from '../features/aiAssistant/AiAssistantPage.jsx';
+const AnalyticsPage = lazy(() => import('../features/analytics/AnalyticsPage.jsx'));
 
 import AdminOverviewPage from '../features/admin/OverviewPage.jsx';
 import AdminUsersPage from '../features/admin/UsersPage.jsx';
@@ -67,11 +68,14 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route path="/notifications" element={<NotificationsPage />} />
-          <Route element={<ProtectedRoute allowedRoles={['patient', 'doctor', 'admin']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['patient', 'doctor', 'admin', 'superAdmin']} />}>
             <Route path="/ai-assistant" element={<AiAssistantPage />} />
           </Route>
+          <Route element={<ProtectedRoute allowedRoles={['admin','superAdmin','doctor','receptionist','nurse','pharmacist','labTechnician']} />}>
+            <Route path="/analytics" element={<Suspense fallback={<p>Loading analytics…</p>}><AnalyticsPage /></Suspense>} />
+          </Route>
 
-          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'superAdmin']} />}>
             <Route path="/admin" element={<AdminOverviewPage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/appointments" element={<AdminAppointmentsPage />} />

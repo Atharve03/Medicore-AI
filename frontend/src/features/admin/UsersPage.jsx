@@ -9,8 +9,10 @@ import TextField from '../../components/common/TextField.jsx';
 import Select from '../../components/common/Select.jsx';
 import EmptyState from '../../components/common/EmptyState.jsx';
 import CreateUserModal from './CreateUserModal.jsx';
+import { useAuthStore } from '../../store/authStore.js';
 
 const ROLES = [
+  'superAdmin',
   'admin',
   'doctor',
   'patient',
@@ -21,6 +23,7 @@ const ROLES = [
 ];
 
 export default function UsersPage() {
+  const actor = useAuthStore((s) => s.user);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
@@ -73,7 +76,7 @@ export default function UsersPage() {
         />
         <Select id="role" label="Role" value={role} onChange={(e) => setRole(e.target.value)}>
           <option value="">All roles</option>
-          {ROLES.map((r) => (
+          {ROLES.filter((r) => actor?.role === 'superAdmin' || r !== 'superAdmin').map((r) => (
             <option key={r} value={r}>
               {r}
             </option>
@@ -106,7 +109,7 @@ export default function UsersPage() {
               >
                 {u.isActive ? 'Active' : 'Inactive'}
               </span>
-              <Button
+              {(actor?.role === 'superAdmin' || !['admin', 'superAdmin'].includes(u.role)) && <Button
                 variant="secondary"
                 loading={busyId === u.id}
                 onClick={() => toggleActive(u)}
@@ -120,13 +123,14 @@ export default function UsersPage() {
                     <UserCheck className="h-4 w-4" /> Reactivate
                   </>
                 )}
-              </Button>
+              </Button>}
             </div>
           </Card>
         ))}
       </div>
 
       <CreateUserModal
+        actorRole={actor?.role}
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={() => {

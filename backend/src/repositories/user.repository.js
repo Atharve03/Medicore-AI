@@ -67,9 +67,10 @@ const userRepository = {
     return User.findByIdAndUpdate(id, { passwordHash });
   },
 
-  async list({ role, search, page = 1, limit = 20 } = {}) {
+  async list({ role, search, excludedRoles = [], page = 1, limit = 20 } = {}) {
     const filter = {};
     if (role) filter.role = role;
+    else if (excludedRoles.length) filter.role = { $nin: excludedRoles };
     if (search) {
       filter.$or = [
         { fullName: { $regex: search, $options: 'i' } },
@@ -92,6 +93,10 @@ const userRepository = {
       { $group: { _id: '$role', count: { $sum: 1 } } },
       { $project: { _id: 0, role: '$_id', count: 1 } },
     ]);
+  },
+
+  countActiveByRole(role) {
+    return User.countDocuments({ role, isActive: true });
   },
 
   countActiveInactive() {

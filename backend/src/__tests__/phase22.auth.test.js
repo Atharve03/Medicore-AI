@@ -20,6 +20,7 @@ describe('Phase 22 authentication policy', () => {
 
   it('rejects public admin registration', () => {
     expect(registerSchema.validate({ ...valid, role: 'admin' }).error).toBeDefined();
+    expect(registerSchema.validate({ ...valid, role: 'superAdmin' }).error).toBeDefined();
   });
 
   test.each([
